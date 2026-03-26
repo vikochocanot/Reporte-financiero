@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal de Reporte Financiero — IACYM Comas</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0f1e3c;--navy2:#162848;--gold:#c9a84c;--gold2:#e8c96a;
+  --bg:#f5f4f0;--card:#fff;--text:#1a1a2e;--muted:#6b6b7e;
+  --border:rgba(0,0,0,0.08);--green:#2d7a4f;--red:#c0392b;--sw:252px;
+}
+html,body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100%;margin:0;}
+#app{display:flex;height:100vh;overflow:hidden;}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:100;}
+.lbox{background:var(--card);border-radius:16px;padding:36px 44px;width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.35);}
+.llogo{text-align:center;margin-bottom:20px;}
+.llogo-img{height:60px;object-fit:contain;background:var(--navy);border-radius:10px;padding:8px 16px;display:block;margin:0 auto;}
+.ltitle{font-family:'DM Serif Display',serif;font-size:17px;color:var(--navy);font-weight:400;margin-top:10px;line-height:1.3;}
+.lsub{font-size:11px;color:var(--muted);margin-top:3px;}
+.ldiv{border:none;border-top:1px solid var(--border);margin:14px 0;}
+.lbox label{display:block;font-size:11px;font-weight:500;color:var(--muted);margin-bottom:4px;margin-top:12px;text-transform:uppercase;letter-spacing:.05em;}
+.lbox input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:#fafaf8;color:var(--text);outline:none;transition:border-color .2s;}
+.lbox input:focus{border-color:var(--gold);}
+.lbtn{width:100%;margin-top:20px;padding:11px;background:var(--navy);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:background .2s;}
+.lbtn:hover{background:var(--navy2);}
+.lhint{font-size:11px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.7;}
+.lerr{font-size:12px;color:var(--red);text-align:center;margin-top:8px;min-height:16px;}
+
+/* SIDEBAR */
+.sb{width:var(--sw);background:var(--navy);color:#fff;display:flex;flex-direction:column;flex-shrink:0;height:100vh;overflow:hidden;}
+.sbh{padding:16px 16px 14px;border-bottom:1px solid rgba(255,255,255,.08);}
+.sbh-img{height:38px;object-fit:contain;display:block;filter:brightness(10);}
+.ubadge{margin-top:10px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);border-radius:6px;padding:4px 9px;font-size:11px;color:var(--gold2);}
+.sbnav{flex:1;overflow-y:auto;padding:6px 0;}
+.sbnav::-webkit-scrollbar{width:3px;}
+.sbnav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px;}
+.ni{padding:9px 16px;font-size:12.5px;color:rgba(255,255,255,.75);cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .15s;border-left:2px solid transparent;user-select:none;}
+.ni:hover{background:rgba(255,255,255,.06);color:#fff;}
+.ni.active{background:rgba(201,168,76,.12);color:var(--gold2);border-left-color:var(--gold);}
+.nsec{padding:10px 16px 4px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);font-weight:500;}
+.nsub{display:none;}.nsub.open{display:block;}
+.nsub .ni{padding-left:34px;font-size:12px;}
+.ni .arr{margin-left:auto;font-size:10px;transition:transform .2s;}
+.ni.open .arr{transform:rotate(90deg);}
+.sbf{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08);}
+.logoutb{width:100%;padding:7px;background:transparent;border:1px solid rgba(255,255,255,.15);border-radius:7px;color:rgba(255,255,255,.6);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.logoutb:hover{border-color:rgba(255,255,255,.4);color:#fff;}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:11px 22px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.topbar h1{font-family:'DM Serif Display',serif;font-size:18px;font-weight:400;color:var(--navy);}
+.tbr{display:flex;align-items:center;gap:8px;}
+.badge{padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;}
+.bg{background:rgba(201,168,76,.12);color:#8a6a14;}
+.bb{background:rgba(30,60,120,.1);color:#162848;}
+.ss{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.dot{width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0;}
+.dot.ok{background:var(--green);}.dot.err{background:var(--red);}.dot.loading{background:var(--gold);}
+.content{flex:1;overflow-y:auto;padding:22px;}
+.content::-webkit-scrollbar{width:5px;}
+.content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* STATS */
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.sc{background:var(--card);border-radius:12px;padding:16px 18px;border:1px solid var(--border);}
+.sc .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+.sc .val{font-size:22px;font-weight:600;color:var(--navy);line-height:1.1;}
+.sc .sub{font-size:11px;margin-top:4px;}
+.up{color:var(--green);}.dn{color:var(--red);}
+.tcol{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;}
+.card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:16px 18px;}
+.card h4{font-size:13px;font-weight:500;color:var(--navy);margin-bottom:12px;}
+
+/* BAR CHART */
+.barchart{display:flex;align-items:flex-end;gap:4px;height:100px;}
+.bw{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.bar{width:100%;border-radius:3px 3px 0 0;cursor:pointer;transition:opacity .15s;}
+.bar:hover{opacity:.75;}
+.bi{background:var(--navy);}.be{background:var(--gold);}
+.bl{font-size:9px;color:var(--muted);}
+
+/* TABLE */
+.dt{width:100%;border-collapse:collapse;font-size:12px;}
+.dt th{text-align:left;padding:7px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);}
+.dt td{padding:7px 8px;border-bottom:1px solid rgba(0,0,0,.04);color:var(--text);}
+.dt tr:last-child td{border-bottom:none;}
+.pill{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:500;}
+.pg{background:rgba(45,122,79,.1);color:#1a5c35;}
+.pr{background:rgba(192,57,43,.1);color:#7a1a12;}
+.pb{background:rgba(15,30,60,.08);color:var(--navy);}
+.pgo{background:rgba(201,168,76,.15);color:#7a5a0a;}
+
+/* FILTERS */
+.fbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.fbar select,.fbar input{padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--text);outline:none;}
+.fbar select:focus,.fbar input:focus{border-color:var(--gold);}
+.syncb{padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;font-family:'DM Sans',sans-serif;}
+.syncb:hover{border-color:var(--navy);color:var(--navy);}
+@keyframes spin{to{transform:rotate(360deg);}}
+.spinning{animation:spin .7s linear infinite;display:inline-block;}
+
+/* LOADING / ERROR */
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:260px;gap:10px;color:var(--muted);}
+.spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:spin .8s linear infinite;}
+.errbox{background:#fff8f7;border:1px solid rgba(192,57,43,.2);border-radius:12px;padding:16px 20px;margin-bottom:14px;}
+.errbox h4{color:var(--red);font-size:13px;margin-bottom:5px;}
+.errbox p{font-size:12px;color:var(--muted);line-height:1.7;}
+code{background:#f0f0ef;padding:2px 5px;border-radius:4px;font-size:11px;}
+
+/* OVERVIEW */
+.ogrid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:14px;}
+.ocard{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:13px 14px;cursor:pointer;transition:all .15s;}
+.ocard:hover{border-color:var(--gold);box-shadow:0 2px 12px rgba(201,168,76,.15);}
+.ocard .cn{font-size:12px;font-weight:500;color:var(--navy);margin-bottom:3px;}
+.ocard .cv{font-size:17px;font-weight:600;color:var(--navy);}
+.ocard .cl{font-size:10px;color:var(--muted);text-transform:uppercase;}
+
+/* ADMIN */
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.plist{display:flex;flex-direction:column;gap:7px;}
+.prow{display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid var(--border);border-radius:9px;background:#fafaf8;transition:background .15s;}
+.prow:hover{background:#f0ede8;}
+.av{width:32px;height:32px;border-radius:50%;background:var(--navy);color:var(--gold2);font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.pi{flex:1;}.pi .pn{font-size:12.5px;font-weight:500;}.pi .pr2{font-size:11px;color:var(--muted);}
+.pas{display:flex;gap:4px;}
+.ib{width:25px;height:25px;border:1px solid var(--border);border-radius:5px;background:var(--card);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;color:var(--muted);}
+.ib:hover{border-color:var(--navy);color:var(--navy);}
+.ib.del:hover{border-color:var(--red);color:var(--red);}
+.cform{display:flex;flex-direction:column;gap:9px;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.fg{display:flex;flex-direction:column;gap:3px;}
+.fg label{font-size:10px;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.04em;}
+.fg input,.fg select{padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;font-family:'DM Sans',sans-serif;background:#fafaf8;color:var(--text);outline:none;}
+.fg input:focus,.fg select:focus{border-color:var(--gold);}
+.fbtn{padding:8px 18px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12.5px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;align-self:flex-end;}
+.fbtn:hover{background:var(--navy2);}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="lbox">
+    <div class="llogo">
+      <!-- Logo IACYM: SVG representativo ya que no podemos embeber imagen externa -->
+      <div style="height:60px;background:var(--navy);border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="17" stroke="white" stroke-width="1.5" opacity=".4"/>
+          <line x1="18" y1="4" x2="18" y2="32" stroke="white" stroke-width="2"/>
+          <line x1="4" y1="18" x2="32" y2="18" stroke="white" stroke-width="2"/>
+          <rect x="13" y="8" width="10" height="14" rx="1" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+          <circle cx="18" cy="26" r="3" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        </svg>
+        <span style="color:white;font-family:'DM Sans',sans-serif;font-size:20px;font-weight:600;letter-spacing:.5px;">iacym <span style="color:#c9a84c;font-size:14px;font-weight:400">Comas</span></span>
+      </div>
+      <div class="ltitle">Portal de Reporte Financiero</div>
+      <div class="lsub">Iglesia Alianza Cristiana y Misionera de Comas</div>
+    </div>
+    <hr class="ldiv">
+    <label>Usuario</label>
+    <input type="text" id="lu" placeholder="ej. admin" autocomplete="off">
+    <label>Contraseña</label>
+    <input type="password" id="lp" placeholder="••••••••">
+    <div class="lerr" id="lerr"></div>
+    <button class="lbtn" onclick="doLogin()">Ingresar</button>
+    <div class="lhint">Admin: <b>admin</b> / <b>admin123</b> &nbsp;|&nbsp; <b>comas</b> / <b>comas123</b></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <!-- SIDEBAR -->
+  <div class="sb">
+    <div class="sbh">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+          <circle cx="18" cy="18" r="17" stroke="white" stroke-width="1.5" opacity=".4"/>
+          <line x1="18" y1="4" x2="18" y2="32" stroke="white" stroke-width="2"/>
+          <line x1="4" y1="18" x2="32" y2="18" stroke="white" stroke-width="2"/>
+          <rect x="13" y="8" width="10" height="14" rx="1" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+          <circle cx="18" cy="26" r="3" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+        </svg>
+        <span style="color:white;font-size:14px;font-weight:500;">iacym <span style="color:#c9a84c;font-size:11px;font-weight:400">Comas</span></span>
+      </div>
+      <div class="ubadge" id="ubadge">Admin</div>
+    </div>
+    <div class="sbnav" id="sbnav"></div>
+    <div class="sbf"><button class="logoutb" onclick="doLogout()">⬅ Cerrar sesión</button></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1 id="ptitle">Dashboard</h1>
+      <div class="tbr">
+        <div class="ss"><div class="dot loading" id="sdot"></div><span id="slbl">Cargando...</span></div>
+        <button class="syncb" id="syncb" onclick="syncAll()"><span id="sicon">↻</span> Actualizar</button>
+        <span class="badge bg" id="rbadge">Admin</span>
+        <span class="badge bb" id="unbadge">admin</span>
+      </div>
+    </div>
+    <div class="content" id="mc"></div>
+  </div>
+</div>
+
+<script>
+// ── CONFIGURACIÓN DE HOJAS ──
+const SHEETS = {
+  virtuales: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTu6Y2KPA390jD0QB-4pi5css3Xo2F1fCewbvm_hjvlhyhwECTsepaPWMTACYS6S37DYfNKYyx6F-lv/pub?gid=1225989450&single=true&output=csv',
+  comas:     'https://docs.google.com/spreadsheets/d/e/2PACX-1vTu6Y2KPA390jD0QB-4pi5css3Xo2F1fCewbvm_hjvlhyhwECTsepaPWMTACYS6S37DYfNKYyx6F-lv/pub?gid=1715217969&single=true&output=csv',
+  misiones:  'https://docs.google.com/spreadsheets/d/e/2PACX-1vTu6Y2KPA390jD0QB-4pi5css3Xo2F1fCewbvm_hjvlhyhwECTsepaPWMTACYS6S37DYfNKYyx6F-lv/pub?gid=1196449210&single=true&output=csv',
+  egresos:   'https://docs.google.com/spreadsheets/d/e/2PACX-1vTu6Y2KPA390jD0QB-4pi5css3Xo2F1fCewbvm_hjvlhyhwECTsepaPWMTACYS6S37DYfNKYyx6F-lv/pub?gid=0&single=true&output=csv',
+};
+
+// ── MAPEO DE COLUMNAS ──
+const COLS = {
+  virtuales: { monto:'Monto', fecha:'Fecha Tranferencia', desc:'Tipo Ofrenda',  unidad:'Unidad negocio',  cat:'Tipo Ofrenda',  resp:'Ofrendante', mes:'Mes Transferencia' },
+  comas:     { monto:'Monto', fecha:'FECHA OP.',          desc:'DESCRIPCIÓN',    unidad:'Centro de Costos', cat:'Centro de Costos', resp:'' },
+  misiones:  { monto:'Monto', fecha:'FECHA OPE',          desc:'DESCRIPCIÓN',    unidad:'Centro de Costo',  cat:'Centro de Costo',  resp:'' },
+  egresos:   { monto:'Egreso', fecha:'FECHA O',           desc:'DESCRIPCION',    unidad:'Unidad negocio',   cat:'Tipo',          resp:'Solicitante', tipo:'Tipo Detalle' },
+};
+
+// ── USUARIOS ──
+const USERS = {
+  admin:    { pass:'admin123', role:'admin',   name:'Administrador', label:'Administrador' },
+  comas:    { pass:'comas123', role:'comas',   name:'IACYM Comas',   label:'IACYM Comas' },
+  progreso: { pass:'progreso123', role:'iglesia', name:'Progreso',   label:'Iglesia Progreso' },
+  anonuevo: { pass:'anonuevo123', role:'iglesia', name:'Año Nuevo',  label:'Iglesia Año Nuevo' },
+  retablo:  { pass:'retablo123',  role:'iglesia', name:'Retablo',    label:'Iglesia Retablo' },
+  collique: { pass:'collique123', role:'iglesia', name:'Collique',   label:'Iglesia Collique' },
+};
+
+const IGLESIAS_DEV = ['Progreso','Año Nuevo','Retablo','Collique','Independencia','Chillón','Balanza','Mala','Pativilca','Huanta'];
+const REDES = ['Joas','Jac','Matrimonios','Mujeres','Hombres','Anfitriones','Doulos','Pre','Sebap','Cebac','Emaus','Niños','Adoración y Comunicaciones','Torre Fuerte'];
+
+let CU=null, CP=null, OM={};
+let DATA={virtuales:[],comas:[],misiones:[],egresos:[]};
+let loaded={virtuales:false,comas:false,misiones:false,egresos:false};
+let profilesData=[
+  {id:1,user:'admin',   name:'Administrador',   role:'admin',   iglesia:'-'},
+  {id:2,user:'comas',   name:'IACYM Comas',      role:'comas',   iglesia:'Comas'},
+  {id:3,user:'progreso',name:'Iglesia Progreso', role:'iglesia', iglesia:'Progreso'},
+  {id:4,user:'anonuevo',name:'Iglesia Año Nuevo',role:'iglesia', iglesia:'Año Nuevo'},
+];
+
+// ── CSV PARSER ──
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+  return lines.slice(1).map(line => {
+    const vals=[]; let cur='', inQ=false;
+    for (let i=0; i<line.length; i++) {
+      const ch=line[i];
+      if (ch==='"') { inQ=!inQ; }
+      else if (ch===',' && !inQ) { vals.push(cur.trim()); cur=''; }
+      else cur+=ch;
+    }
+    vals.push(cur.trim());
+    const obj={};
+    headers.forEach((h,i) => { obj[h]=(vals[i]||'').replace(/^"|"$/g,'').trim(); });
+    return obj;
+  }).filter(r => Object.values(r).some(v => v!==''));
+}
+
+async function fetchSheet(key) {
+  try {
+    const r = await fetch(SHEETS[key]+'&t='+Date.now());
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    const text = await r.text();
+    DATA[key] = parseCSV(text);
+    loaded[key] = true;
+    return true;
+  } catch(e) {
+    console.warn(key+' error:', e.message);
+    loaded[key] = false;
+    return false;
+  }
+}
+
+async function syncAll() {
+  setStatus('loading','Actualizando...');
+  const btn=document.getElementById('syncb');
+  const icon=document.getElementById('sicon');
+  if(btn) btn.disabled=true;
+  if(icon) icon.classList.add('spinning');
+  const results = await Promise.all(Object.keys(SHEETS).map(k=>fetchSheet(k)));
+  const ok = results.filter(Boolean).length;
+  if(icon) icon.classList.remove('spinning');
+  if(btn) btn.disabled=false;
+  const total = DATA.virtuales.length+DATA.comas.length+DATA.misiones.length+DATA.egresos.length;
+  if(ok===4) setStatus('ok',`${ok}/4 hojas · ${total} registros`);
+  else if(ok>0) setStatus('loading',`${ok}/4 hojas cargadas`);
+  else setStatus('err','Error de conexión');
+  if(CP) navigateTo(CP);
+}
+
+function setStatus(state,msg) {
+  const d=document.getElementById('sdot'),l=document.getElementById('slbl');
+  if(d) d.className='dot '+(state==='ok'?'ok':state==='err'?'err':'loading');
+  if(l) l.textContent=msg;
+}
+
+// ── HELPERS ──
+function parseMonto(v) {
+  if(!v && v!==0) return 0;
+  const n=parseFloat(String(v).replace(/[^0-9.\-]/g,''));
+  return isNaN(n)?0:Math.abs(n);
+}
+function fmtS(n){ return 'S/ '+Math.abs(n).toLocaleString('es-PE',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function getF(row,col){ return row[col]||''; }
+function getMes(v) {
+  if(!v) return '?';
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const s=String(v);
+  const d=new Date(s);
+  if(!isNaN(d) && d.getFullYear()>1990) return meses[d.getMonth()];
+  const m=s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+  if(m) return meses[parseInt(m[2])-1]||'?';
+  return s.substring(0,3);
+}
+function calcIngresos(filtro) {
+  let total=0,count=0;
+  ['virtuales','comas','misiones'].forEach(k=>{
+    let rows=DATA[k];
+    if(filtro) rows=rows.filter(r=>String(getF(r,COLS[k].unidad)).toLowerCase().includes(filtro.toLowerCase()));
+    rows.forEach(r=>{ total+=parseMonto(getF(r,COLS[k].monto)); count++; });
+  });
+  return {total,count};
+}
+function calcEgresos(filtro) {
+  let rows=DATA.egresos;
+  if(filtro) rows=rows.filter(r=>String(getF(r,COLS.egresos.unidad)).toLowerCase().includes(filtro.toLowerCase()));
+  let total=0;
+  rows.forEach(r=>{ total+=parseMonto(getF(r,COLS.egresos.monto)); });
+  return {total,count:rows.length};
+}
+function byMesIngresos() {
+  const map={};
+  ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'].forEach(m=>map[m]=0);
+  ['virtuales','comas','misiones'].forEach(k=>{
+    DATA[k].forEach(r=>{ const m=getMes(getF(r,COLS[k].fecha)); if(map[m]!==undefined) map[m]+=parseMonto(getF(r,COLS[k].monto)); });
+  });
+  return map;
+}
+function byMesEgresos() {
+  const map={};
+  ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'].forEach(m=>map[m]=0);
+  DATA.egresos.forEach(r=>{ const m=getMes(getF(r,COLS.egresos.fecha)); if(map[m]!==undefined) map[m]+=parseMonto(getF(r,COLS.egresos.monto)); });
+  return map;
+}
+
+// ── AUTH ──
+function doLogin() {
+  const u=document.getElementById('lu').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value;
+  const e=document.getElementById('lerr');
+  if(USERS[u] && USERS[u].pass===p) {
+    CU={...USERS[u],username:u}; e.textContent='';
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    initApp();
+  } else e.textContent='Usuario o contraseña incorrectos.';
+}
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('lu').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+function doLogout() {
+  CU=null; OM={};
+  document.getElementById('lu').value=''; document.getElementById('lp').value='';
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+
+async function initApp() {
+  document.getElementById('ubadge').textContent=CU.label;
+  document.getElementById('rbadge').textContent=CU.label;
+  document.getElementById('unbadge').textContent=CU.username;
+  buildNav(); navigateTo('dashboard');
+  await syncAll();
+  navigateTo(CP||'dashboard');
+}
+
+// ── NAV ──
+function buildNav() {
+  const nav=document.getElementById('sbnav'); nav.innerHTML='';
+  const role=CU.role;
+  addNI(nav,'dashboard','◈  Dashboard','dashboard');
+  if(role==='admin'||role==='comas') {
+    addNI(nav,'comas','⛪  Iglesia Alianza Cristiana y Misionera de Comas','comas');
+    addNS(nav,'Fuentes de Datos');
+    addNI(nav,'virtuales','💻  Ingresos Virtuales','virtuales');
+    addNI(nav,'ingcomas','🏛  Ingresos Comas','ingcomas');
+    addNI(nav,'misiones','✈  Ingresos Misiones','misiones');
+    addNI(nav,'egresos','📤  Egresos','egresos');
+    addNS(nav,'Red de Iglesias');
+    addNP(nav,'iglesiasDev','🏘  Iglesias en Desarrollo',IGLESIAS_DEV.map(n=>({id:'igl-'+n.replace(/\s/g,'').toLowerCase(),label:n})));
+    addNP(nav,'redes','🤝  Redes / Ministerios',REDES.map(n=>({id:'red-'+n.replace(/\s/g,'').toLowerCase(),label:n})));
+  }
+  if(role==='iglesia') { addNI(nav,'iglesiapropia','⛪  Mi Iglesia','iglesiapropia'); }
+  if(role==='admin') {
+    addNS(nav,'Administración');
+    addNI(nav,'admin','⚙  Gestión de Usuarios','admin');
+    addNI(nav,'overview','📊  Vista General','overview');
+  }
+}
+function addNS(n,l){const d=document.createElement('div');d.className='nsec';d.textContent=l;n.appendChild(d);}
+function addNI(n,page,label,key){const d=document.createElement('div');d.className='ni'+(CP===key?' active':'');d.innerHTML=label;d.onclick=()=>navigateTo(key);n.appendChild(d);}
+function addNP(n,mid,label,children){
+  const p=document.createElement('div');p.className='ni'+(OM[mid]?' open':'');
+  p.innerHTML=label+'<span class="arr">▶</span>';p.onclick=()=>{OM[mid]=!OM[mid];buildNav();};n.appendChild(p);
+  const s=document.createElement('div');s.className='nsub'+(OM[mid]?' open':'');
+  children.forEach(c=>{const ci=document.createElement('div');ci.className='ni'+(CP===c.id?' active':'');ci.textContent=c.label;ci.onclick=(e)=>{e.stopPropagation();navigateTo(c.id,c.label);};s.appendChild(ci);});
+  n.appendChild(s);
+}
+
+function navigateTo(page,label) {
+  CP=page; buildNav();
+  const titles={
+    dashboard:'Dashboard General',
+    comas:'Iglesia Alianza Cristiana y Misionera de Comas',
+    virtuales:'Ingresos Virtuales',ingcomas:'Ingresos Comas',misiones:'Ingresos Misiones',
+    egresos:'Egresos',admin:'Gestión de Usuarios',overview:'Vista General — Consolidado',
+    iglesiapropia:'Mi Iglesia — Estado Financiero',
+  };
+  document.getElementById('ptitle').textContent=titles[page]||label||page;
+  const c=document.getElementById('mc');
+  if(page==='dashboard') renderDashboard(c);
+  else if(page==='comas'||page==='iglesiapropia') renderResumen(c);
+  else if(page==='virtuales') renderHoja(c,'virtuales','Ingresos Virtuales');
+  else if(page==='ingcomas') renderHoja(c,'comas','Ingresos Comas');
+  else if(page==='misiones') renderHoja(c,'misiones','Ingresos Misiones');
+  else if(page==='egresos') renderEgresos(c);
+  else if(page==='overview') renderOverview(c);
+  else if(page==='admin') renderAdmin(c);
+  else if(page.startsWith('igl-')) renderIglesia(c,label||page);
+  else c.innerHTML=`<div class="loading"><div style="font-size:36px;opacity:.25">🤝</div><p style="font-size:13px;color:var(--muted)">Sección <b>${label||page}</b><br>Próximamente</p></div>`;
+}
+
+// ── DASHBOARD ──
+function renderDashboard(c) {
+  const anyLoaded=Object.values(loaded).some(Boolean);
+  if(!anyLoaded){c.innerHTML=`<div class="loading"><div class="spinner"></div><p style="font-size:13px">Conectando con Google Sheets...</p></div>`;return;}
+  const ing=calcIngresos(), egr=calcEgresos(), saldo=ing.total-egr.total;
+  const mesI=byMesIngresos(), mesE=byMesEgresos();
+  const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const maxV=Math.max(...meses.map(m=>Math.max(mesI[m]||0,mesE[m]||0)),1);
+  const cats={};
+  DATA.egresos.forEach(r=>{const cat=getF(r,COLS.egresos.cat)||'Sin tipo';cats[cat]=(cats[cat]||0)+parseMonto(getF(r,COLS.egresos.monto));});
+  const catColors=['#0f1e3c','#c9a84c','#2d7a4f','#c0392b','#5b8fa8','#8e6bbf'];
+  const catE=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const catT=catE.reduce((s,[,v])=>s+v,0);
+
+  c.innerHTML=`
+  <div class="sgrid">
+    <div class="sc"><div class="lbl">Total Ingresos</div><div class="val">${fmtS(ing.total)}</div><div class="sub up">${ing.count} registros · 3 fuentes</div></div>
+    <div class="sc"><div class="lbl">Total Egresos</div><div class="val">${fmtS(egr.total)}</div><div class="sub dn">${egr.count} registros</div></div>
+    <div class="sc"><div class="lbl">Saldo Neto</div><div class="val" style="color:${saldo>=0?'var(--green)':'var(--red)'}">${fmtS(saldo)}</div><div class="sub ${saldo>=0?'up':'dn'}">${saldo>=0?'Superávit':'Déficit'}</div></div>
+    <div class="sc"><div class="lbl">Hojas conectadas</div><div class="val">${Object.values(loaded).filter(Boolean).length}/4</div><div class="sub up">Google Sheets en vivo</div></div>
+  </div>
+  <div class="tcol">
+    <div class="card">
+      <h4>Ingresos vs Egresos por Mes</h4>
+      <div class="barchart">
+        ${meses.map(m=>{const ih=Math.round((mesI[m]||0)/maxV*90),eh=Math.round((mesE[m]||0)/maxV*90);return`<div class="bw"><div class="bar bi" style="height:${Math.max(ih,2)}px" title="${m} Ingresos: ${fmtS(mesI[m]||0)}"></div><div class="bar be" style="height:${Math.max(eh,2)}px" title="${m} Egresos: ${fmtS(mesE[m]||0)}"></div><span class="bl">${m}</span></div>`;}).join('')}
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:var(--navy);border-radius:2px;display:inline-block"></span>Ingresos</span>
+        <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:var(--gold);border-radius:2px;display:inline-block"></span>Egresos</span>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Egresos por Tipo</h4>
+      <div style="display:flex;align-items:center;gap:12px">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="30" fill="none" stroke="#e8e8e4" stroke-width="12"/>
+          ${(()=>{let off=0;return catE.map(([,v],i)=>{const pct=catT>0?v/catT:0,d=pct*188.4;const el=`<circle cx="40" cy="40" r="30" fill="none" stroke="${catColors[i]}" stroke-width="12" stroke-dasharray="${d.toFixed(1)} ${(188.4-d).toFixed(1)}" stroke-dashoffset="${(-off).toFixed(1)}" transform="rotate(-90 40 40)"/>`;off+=d;return el;}).join('');})()}
+        </svg>
+        <div style="flex:1">${catE.map(([cat,v],i)=>`<div style="display:flex;align-items:center;gap:5px;margin-bottom:5px;font-size:11px"><div style="width:7px;height:7px;border-radius:50%;background:${catColors[i]};flex-shrink:0"></div>${cat.length>16?cat.substring(0,14)+'…':cat} ${catT>0?Math.round(v/catT*100):0}%</div>`).join('')}</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <h4>Estado de Conexión — 4 Hojas Google Sheets</h4>
+    <table class="dt">
+      <thead><tr><th>Fuente</th><th>Registros</th><th>Total</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td>💻 Ingresos Virtuales</td><td>${DATA.virtuales.length}</td><td style="color:var(--green)">${fmtS(DATA.virtuales.reduce((s,r)=>s+parseMonto(getF(r,COLS.virtuales.monto)),0))}</td><td><span class="pill ${loaded.virtuales?'pg':'pr'}">${loaded.virtuales?'Conectado':'Error'}</span></td></tr>
+        <tr><td>🏛 Ingresos Comas</td><td>${DATA.comas.length}</td><td style="color:var(--green)">${fmtS(DATA.comas.reduce((s,r)=>s+parseMonto(getF(r,COLS.comas.monto)),0))}</td><td><span class="pill ${loaded.comas?'pg':'pr'}">${loaded.comas?'Conectado':'Error'}</span></td></tr>
+        <tr><td>✈ Ingresos Misiones</td><td>${DATA.misiones.length}</td><td style="color:var(--green)">${fmtS(DATA.misiones.reduce((s,r)=>s+parseMonto(getF(r,COLS.misiones.monto)),0))}</td><td><span class="pill ${loaded.misiones?'pg':'pr'}">${loaded.misiones?'Conectado':'Error'}</span></td></tr>
+        <tr><td>📤 Egresos</td><td>${DATA.egresos.length}</td><td style="color:var(--red)">${fmtS(egr.total)}</td><td><span class="pill ${loaded.egresos?'pg':'pr'}">${loaded.egresos?'Conectado':'Error'}</span></td></tr>
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ── HOJA INGRESOS ──
+function renderHoja(c,key,titulo) {
+  const rows=DATA[key], col=COLS[key];
+  if(!loaded[key]){c.innerHTML=`<div class="errbox"><h4>No se pudo cargar ${titulo}</h4><p>Verifica que la hoja esté publicada como CSV en <b>Archivo → Compartir → Publicar en la web</b>.</p></div>`;return;}
+  const total=rows.reduce((s,r)=>s+parseMonto(getF(r,col.monto)),0);
+  const mesesU=[...new Set(rows.map(r=>getMes(getF(r,col.fecha))))].filter(m=>m!=='?');
+  c.innerHTML=`
+  <div class="sgrid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="sc"><div class="lbl">Total Ingresos</div><div class="val">${fmtS(total)}</div><div class="sub up">${rows.length} registros</div></div>
+    <div class="sc"><div class="lbl">Meses con datos</div><div class="val">${mesesU.length}</div><div class="sub up">Periodos registrados</div></div>
+    <div class="sc"><div class="lbl">Promedio por registro</div><div class="val" style="font-size:16px">${rows.length?fmtS(total/rows.length):'S/ 0'}</div><div class="sub up">Monto promedio</div></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+      <h4 style="margin:0">${titulo} — ${rows.length} registros</h4>
+      <div class="fbar">
+        <select id="fil-mes-${key}" onchange="filtrarHoja('${key}')">
+          <option value="">Todos los meses</option>
+          ${mesesU.map(m=>`<option value="${m}">${m}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <table class="dt">
+      <thead><tr><th>Fecha</th><th>Descripción</th><th>Unidad / Centro</th><th>Monto</th></tr></thead>
+      <tbody id="tbody-${key}">${buildIngRows(rows,col)}</tbody>
+    </table>
+  </div>`;
+}
+function buildIngRows(rows,col){
+  if(!rows.length) return`<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">Sin registros</td></tr>`;
+  return rows.slice(0,80).map(r=>`<tr><td>${getF(r,col.fecha)||'-'}</td><td>${String(getF(r,col.desc)||'-').substring(0,40)}</td><td style="font-size:11px">${String(getF(r,col.unidad)||'-').substring(0,28)}</td><td style="color:var(--green);font-weight:500">+${fmtS(parseMonto(getF(r,col.monto)))}</td></tr>`).join('');
+}
+function filtrarHoja(key){
+  const mes=document.getElementById('fil-mes-'+key)?.value||'';
+  let rows=DATA[key];
+  if(mes) rows=rows.filter(r=>getMes(getF(r,COLS[key].fecha))===mes);
+  const tbody=document.getElementById('tbody-'+key);
+  if(tbody) tbody.innerHTML=buildIngRows(rows,COLS[key]);
+}
+
+// ── EGRESOS ──
+function renderEgresos(c){
+  const rows=DATA.egresos, col=COLS.egresos;
+  if(!loaded.egresos){c.innerHTML=`<div class="errbox"><h4>No se pudo cargar Egresos</h4><p>Verifica que la hoja esté publicada como CSV.</p></div>`;return;}
+  const total=rows.reduce((s,r)=>s+parseMonto(getF(r,col.monto)),0);
+  const tipos=[...new Set(rows.map(r=>getF(r,col.tipo)||'Sin tipo'))];
+  const unidades=[...new Set(rows.map(r=>getF(r,col.unidad)||''))].filter(Boolean);
+  c.innerHTML=`
+  <div class="sgrid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="sc"><div class="lbl">Total Egresos</div><div class="val" style="color:var(--red)">${fmtS(total)}</div><div class="sub dn">${rows.length} registros</div></div>
+    <div class="sc"><div class="lbl">Tipos</div><div class="val">${tipos.length}</div><div class="sub up">Tipos de egreso</div></div>
+    <div class="sc"><div class="lbl">Unidades</div><div class="val">${unidades.length}</div><div class="sub up">Unidades de negocio</div></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px">
+      <h4 style="margin:0">Registro de Egresos — ${rows.length} registros</h4>
+      <div class="fbar">
+        <select id="fil-tipo-egr" onchange="filtrarEgresos()"><option value="">Todos los tipos</option>${tipos.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
+        <select id="fil-uni-egr" onchange="filtrarEgresos()"><option value="">Todas las unidades</option>${unidades.map(u=>`<option value="${u}">${u}</option>`).join('')}</select>
+      </div>
+    </div>
+    <table class="dt">
+      <thead><tr><th>Fecha</th><th>Descripción</th><th>Unidad</th><th>Tipo</th><th>Solicitante</th><th>Monto</th></tr></thead>
+      <tbody id="tbody-egr">${buildEgrRows(rows)}</tbody>
+    </table>
+  </div>`;
+}
+function buildEgrRows(rows){
+  if(!rows.length) return`<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">Sin registros</td></tr>`;
+  return rows.slice(0,80).map(r=>`<tr><td>${getF(r,COLS.egresos.fecha)||'-'}</td><td>${String(getF(r,COLS.egresos.desc)||'-').substring(0,32)}</td><td style="font-size:11px">${String(getF(r,COLS.egresos.unidad)||'-').substring(0,22)}</td><td><span class="pill pb">${String(getF(r,COLS.egresos.tipo)||'-').substring(0,16)}</span></td><td style="font-size:11px">${String(getF(r,COLS.egresos.resp)||'-').substring(0,16)}</td><td style="color:var(--red);font-weight:500">-${fmtS(parseMonto(getF(r,COLS.egresos.monto)))}</td></tr>`).join('');
+}
+function filtrarEgresos(){
+  const tipo=document.getElementById('fil-tipo-egr')?.value||'';
+  const uni=document.getElementById('fil-uni-egr')?.value||'';
+  let rows=DATA.egresos;
+  if(tipo) rows=rows.filter(r=>getF(r,COLS.egresos.tipo)===tipo);
+  if(uni)  rows=rows.filter(r=>getF(r,COLS.egresos.unidad)===uni);
+  const tbody=document.getElementById('tbody-egr');
+  if(tbody) tbody.innerHTML=buildEgrRows(rows);
+}
+
+// ── RESUMEN ──
+function renderResumen(c){
+  const ing=calcIngresos(), egr=calcEgresos(), saldo=ing.total-egr.total;
+  c.innerHTML=`
+  <div class="sgrid">
+    <div class="sc"><div class="lbl">Ingresos Totales</div><div class="val">${fmtS(ing.total)}</div><div class="sub up">3 fuentes combinadas</div></div>
+    <div class="sc"><div class="lbl">Egresos Totales</div><div class="val">${fmtS(egr.total)}</div><div class="sub dn">Hoja de egresos</div></div>
+    <div class="sc"><div class="lbl">Saldo Neto</div><div class="val" style="color:${saldo>=0?'var(--green)':'var(--red)'}">${fmtS(saldo)}</div><div class="sub ${saldo>=0?'up':'dn'}">${saldo>=0?'Superávit':'Déficit'}</div></div>
+    <div class="sc"><div class="lbl">Total registros</div><div class="val">${ing.count+egr.count}</div><div class="sub up">4 hojas conectadas</div></div>
+  </div>
+  <div class="tcol">
+    <div class="card">
+      <h4>Desglose por fuente de ingresos</h4>
+      <table class="dt">
+        <thead><tr><th>Fuente</th><th>Registros</th><th>Monto</th><th>% del total</th></tr></thead>
+        <tbody>
+          ${['virtuales','comas','misiones'].map(k=>{const t=DATA[k].reduce((s,r)=>s+parseMonto(getF(r,COLS[k].monto)),0);const n={virtuales:'💻 Ingresos Virtuales',comas:'🏛 Ingresos Comas',misiones:'✈ Ingresos Misiones'}[k];return`<tr><td>${n}</td><td>${DATA[k].length}</td><td style="color:var(--green)">${fmtS(t)}</td><td>${ing.total>0?Math.round(t/ing.total*100):0}%</td></tr>`;}).join('')}
+          <tr style="border-top:2px solid var(--border);font-weight:500"><td>📤 Egresos</td><td>${DATA.egresos.length}</td><td style="color:var(--red)">${fmtS(egr.total)}</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h4>Balance general</h4>
+      <div style="margin-top:6px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--muted)">Ingresos</span><span style="color:var(--green);font-weight:500">${fmtS(ing.total)}</span></div>
+        <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin-bottom:10px"><div style="height:100%;width:${ing.total+egr.total>0?Math.round(ing.total/(ing.total+egr.total)*100):0}%;background:var(--green);border-radius:4px"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px"><span style="color:var(--muted)">Egresos</span><span style="color:var(--red);font-weight:500">${fmtS(egr.total)}</span></div>
+        <div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin-bottom:14px"><div style="height:100%;width:${ing.total+egr.total>0?Math.round(egr.total/(ing.total+egr.total)*100):0}%;background:var(--red);border-radius:4px"></div></div>
+        <div style="padding-top:12px;border-top:1px solid var(--border)"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">Saldo neto</div><div style="font-size:22px;font-weight:600;color:${saldo>=0?'var(--green)':'var(--red)'}">${fmtS(saldo)}</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── OVERVIEW ──
+function renderOverview(c){
+  const ing=calcIngresos(), egr=calcEgresos(), saldo=ing.total-egr.total;
+  const unidades=[...new Set([...DATA.virtuales.map(r=>getF(r,COLS.virtuales.unidad)),...DATA.egresos.map(r=>getF(r,COLS.egresos.unidad))])].filter(Boolean);
+  c.innerHTML=`
+  <div class="sgrid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="sc"><div class="lbl">Ingresos consolidados</div><div class="val">${fmtS(ing.total)}</div><div class="sub up">3 hojas de ingresos</div></div>
+    <div class="sc"><div class="lbl">Egresos consolidados</div><div class="val">${fmtS(egr.total)}</div><div class="sub dn">Hoja de egresos</div></div>
+    <div class="sc"><div class="lbl">Saldo global</div><div class="val" style="color:${saldo>=0?'var(--green)':'var(--red)'}">${fmtS(saldo)}</div><div class="sub ${saldo>=0?'up':'dn'}">${saldo>=0?'Superávit':'Déficit'}</div></div>
+  </div>
+  <div class="card">
+    <h4>Por Unidad de Negocio</h4>
+    <table class="dt">
+      <thead><tr><th>Unidad de negocio</th><th>Ing. Virtuales</th><th>Egresos</th><th>Saldo</th><th>Estado</th></tr></thead>
+      <tbody>
+        ${unidades.slice(0,25).map(u=>{
+          const iv=DATA.virtuales.filter(r=>getF(r,COLS.virtuales.unidad)===u).reduce((s,r)=>s+parseMonto(getF(r,COLS.virtuales.monto)),0);
+          const eg=DATA.egresos.filter(r=>getF(r,COLS.egresos.unidad)===u).reduce((s,r)=>s+parseMonto(getF(r,COLS.egresos.monto)),0);
+          const sal=iv-eg;
+          return`<tr><td><b>${u}</b></td><td style="color:var(--green)">${fmtS(iv)}</td><td style="color:var(--red)">${fmtS(eg)}</td><td style="font-weight:500;color:${sal>=0?'var(--green)':'var(--red)'}">${fmtS(sal)}</td><td><span class="pill ${sal>=0?'pg':'pr'}">${sal>=0?'OK':'Revisar'}</span></td></tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+  </div>`;
+}
+
+// ── IGLESIA ──
+function renderIglesia(c,nombre){
+  const iv=DATA.virtuales.filter(r=>String(getF(r,COLS.virtuales.unidad)).toLowerCase().includes(nombre.toLowerCase())).reduce((s,r)=>s+parseMonto(getF(r,COLS.virtuales.monto)),0);
+  const eg=DATA.egresos.filter(r=>String(getF(r,COLS.egresos.unidad)).toLowerCase().includes(nombre.toLowerCase())).reduce((s,r)=>s+parseMonto(getF(r,COLS.egresos.monto)),0);
+  c.innerHTML=`
+  <div class="sgrid" style="grid-template-columns:repeat(3,1fr)">
+    <div class="sc"><div class="lbl">Ingresos</div><div class="val">${fmtS(iv)}</div><div class="sub up">Ingresos virtuales</div></div>
+    <div class="sc"><div class="lbl">Egresos</div><div class="val">${fmtS(eg)}</div><div class="sub dn">Registrados</div></div>
+    <div class="sc"><div class="lbl">Saldo</div><div class="val" style="color:${iv-eg>=0?'var(--green)':'var(--red)'}">${fmtS(iv-eg)}</div><div class="sub ${iv-eg>=0?'up':'dn'}">${iv-eg>=0?'Superávit':'Déficit'}</div></div>
+  </div>
+  <div class="card"><div class="loading" style="height:120px"><div style="font-size:28px;opacity:.3">⛪</div><p style="font-size:12px;color:var(--muted);text-align:center">Registra <code>Unidad negocio = "${nombre}"</code><br>en tus hojas para ver datos detallados aquí.</p></div></div>`;
+}
+
+// ── ADMIN ──
+function renderAdmin(c){
+  c.innerHTML=`
+  <div class="agrid">
+    <div class="card"><h4>Perfiles (${profilesData.length})</h4><div class="plist" id="plist">${buildPRows()}</div></div>
+    <div class="card">
+      <h4>Crear Nuevo Perfil</h4>
+      <div class="cform">
+        <div class="frow"><div class="fg"><label>Nombre</label><input type="text" id="fn" placeholder="Nombre completo"></div><div class="fg"><label>Usuario</label><input type="text" id="fu" placeholder="ej. iglesia5"></div></div>
+        <div class="frow"><div class="fg"><label>Contraseña</label><input type="password" id="fp" placeholder="••••••••"></div><div class="fg"><label>Rol</label><select id="fr"><option value="iglesia">Iglesia en Desarrollo</option><option value="comas">Iglesia Principal</option><option value="admin">Administrador</option></select></div></div>
+        <button class="fbtn" onclick="createP()">+ Crear Perfil</button>
+        <div id="fmsg" style="font-size:11px;text-align:right;min-height:13px"></div>
+      </div>
+    </div>
+  </div>`;
+}
+function buildPRows(){return profilesData.map(p=>`<div class="prow"><div class="av">${p.name.substring(0,2).toUpperCase()}</div><div class="pi"><div class="pn">${p.name}</div><div class="pr2">${p.user} · ${p.role==='admin'?'Administrador':p.role==='comas'?'Principal':'Desarrollo'}</div></div><div class="pas"><button class="ib">✎</button><button class="ib del" onclick="delP(${p.id})">${p.role!=='admin'?'✕':'🔒'}</button></div></div>`).join('');}
+function createP(){
+  const n=document.getElementById('fn').value.trim(),u=document.getElementById('fu').value.trim(),p=document.getElementById('fp').value.trim(),r=document.getElementById('fr').value;
+  const m=document.getElementById('fmsg');
+  if(!n||!u||!p){m.style.color='var(--red)';m.textContent='Complete todos los campos.';return;}
+  profilesData.push({id:profilesData.length+1,user:u,name:n,role:r,iglesia:'-'});
+  USERS[u]={pass:p,role:r,name:n,label:n};
+  m.style.color='var(--green)';m.textContent=`"${n}" creado correctamente.`;
+  document.getElementById('fn').value='';document.getElementById('fu').value='';document.getElementById('fp').value='';
+  document.getElementById('plist').innerHTML=buildPRows();
+}
+function delP(id){
+  const p=profilesData.find(x=>x.id===id);
+  if(!p||p.role==='admin') return;
+  if(confirm(`¿Eliminar el perfil "${p.name}"?`)){profilesData=profilesData.filter(x=>x.id!==id);renderAdmin(document.getElementById('mc'));}
+}
+</script>
+</body>
+</html>
